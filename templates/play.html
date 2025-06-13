@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Play Uploaded Video</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(to right, #141e30, #243b55);
+      color: #fff;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      padding: 30px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.4);
+    }
+
+    h1, h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    video {
+      width: 100%;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    ul.info-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 auto 30px;
+      max-width: 600px;
+    }
+
+    ul.info-list li {
+      background: #1c2a3a;
+      margin-bottom: 10px;
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+
+    .highlight {
+      background: rgba(255, 255, 255, 0.08);
+      margin: 20px 0;
+      padding: 15px 20px;
+      border-left: 4px solid #00c6ff;
+      border-radius: 12px;
+      transition: background 0.3s ease;
+    }
+
+    .highlight:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .timestamp {
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #00c6ff;
+    }
+
+    .highlight button {
+      background: #0072ff;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.3s ease;
+    }
+
+    .highlight button:hover {
+      background: #005bd3;
+    }
+
+    .captions { margin-top: 12px; }
+
+    .captions ul {
+      list-style-type: disc;
+      padding-left: 20px;
+      color: #ccc;
+    }
+
+    .btn-process {
+      display: block;
+      margin: 30px auto 20px;
+      padding: 12px 28px;
+      background: linear-gradient(to right, #0072ff, #00c6ff);
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .btn-process:hover {
+      background: linear-gradient(to right, #005bea, #00aaff);
+    }
+
+    .spinner {
+      display: none;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .spinner img {
+      width: 50px;
+      height: 50px;
+    }
+
+    .progress-bar {
+      height: 8px;
+      width: 0%;
+      background-color: #00c6ff;
+      border-radius: 10px;
+      margin-top: 20px;
+      transition: width 0.3s;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #1c2a3a;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px #000;
+      display: none;
+      z-index: 999;
+    }
+
+    .back-link {
+      text-align: center;
+      margin-top: 30px;
+    }
+
+    .back-link a {
+      color: #ccc;
+      text-decoration: none;
+      font-size: 15px;
+      transition: color 0.2s ease;
+    }
+
+    .back-link a:hover {
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+      <h1>Uploaded Video</h1>
+      <video id="videoPlayer" controls>
+        <source id="videoSource" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+
+   
+
+      <h2>Video Info</h2>
+      <ul class="info-list" id="infoList"></ul>
+  
+      <h2>Detected Highlights</h2>
+      <div id="highlightsContainer"></div>
+  
+      <div class="back-link">
+        <a href="upload.html">⬅ Upload another video</a>
+      </div>
+    </div>
+    <script>
+      // Get metadata from sessionStorage
+      const metadata = JSON.parse(sessionStorage.getItem("videoMetadata"));
+  
+      if (!metadata) {
+        document.getElementById('appContainer').innerHTML = '<p style="text-align:center;">No video metadata found. Please upload a video first.</p>';
+      } else {
+        // Set video source
+        document.getElementById('videoSource').src = `http://127.0.0.1:5000/videos/${metadata.filename}`;
+        document.getElementById('videoPlayer').load();
+  
+        // Set info
+        const infoList = document.getElementById('infoList');
+        infoList.innerHTML = `
+          <li><strong>Filename:</strong> ${metadata.filename}</li>
+          <li><strong>Size:</strong> ${metadata.size_mb} MB</li>
+          <li><strong>Duration:</strong> ${metadata.duration} seconds</li>
+        `;
+  
+        // Show highlights
+        const highlights = metadata.highlights || [];
+        const captions = metadata.captions || [];
+        const container = document.getElementById('highlightsContainer');
+  
+        if (highlights.length === 0) {
+          container.innerHTML = '<p style="text-align:center; color:#bbb;">No highlight segments detected.</p>';
+        } else {
+          highlights.forEach(h => {
+            const relatedCaptions = captions.filter(c => {
+              const t = parseFloat(c.split(']')[0].split('[')[1].split('-')[0]);
+              return t >= h.start && t <= h.end;
+            });
+  
+            const highlightDiv = document.createElement('div');
+            highlightDiv.className = 'highlight';
+            highlightDiv.innerHTML = `
+              <div class="timestamp">⏱ ${h.start}s – ${h.end}s</div>
+              <p>${h.text || "Highlight moment"}</p>
+              <button onclick="playHighlight(${h.start}, ${h.end})">▶ Play Highlight</button>
+              <div class="captions">
+                <strong>Captions:</strong>
+                <ul>${relatedCaptions.map(c => `<li>${c}</li>`).join('')}</ul>
+              </div>
+            `;
+            container.appendChild(highlightDiv);
+          });
+        }
+      }
+  
+      let highlightInterval;
+      function playHighlight(start, end) {
+        const video = document.getElementById('videoPlayer');
+        video.currentTime = parseFloat(start);
+        video.play();
+  
+        if (highlightInterval) clearInterval(highlightInterval);
+        highlightInterval = setInterval(() => {
+          if (video.currentTime >= parseFloat(end)) {
+            video.pause();
+            clearInterval(highlightInterval);
+          }
+        }, 200);
+      }
+    </script>
+  </body>
+  </html>
