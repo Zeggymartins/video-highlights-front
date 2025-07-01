@@ -180,7 +180,7 @@
       <div id="highlightsContainer"></div>
   
       <div class="back-link">
-        <a href="upload.html">⬅ Upload another video</a>
+        <a href="index.html">⬅ Upload another video</a>
       </div>
     </div>
     <script>
@@ -191,7 +191,7 @@
         document.getElementById('appContainer').innerHTML = '<p style="text-align:center;">No video metadata found. Please upload a video first.</p>';
       } else {
         // Set video source
-        document.getElementById('videoSource').src = `https://video-highlights-ys5u.onrender.com/videos/${metadata.filename}`;
+        document.getElementById('videoSource').src = `http://34.66.201.224/videos/${metadata.filename}`;
         document.getElementById('videoPlayer').load();
   
         // Set info
