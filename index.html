@@ -245,7 +245,7 @@
     toastAlert.show();
   
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', `${CONFIG.API_BASE_URL}/upload`, true);
+    xhr.open('POST', `http://34.66.201.224/upload`, true);
   
     xhr.upload.onprogress = function (e) {
       if (e.lengthComputable) {
